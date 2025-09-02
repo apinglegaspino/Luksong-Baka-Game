@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Luksong Baka</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: #cce7ff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    h1 {
+      margin: 10px;
+      font-size: 32px;
+      color: #333;
+    }
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: #7ec850;
+    }
+    #score {
+      position: absolute;
+      top: 60px;
+      left: 10px;
+      font-size: 20px;
+      font-weight: bold;
+      background: rgba(255,255,255,0.7);
+      padding: 5px 10px;
+      border-radius: 8px;
+    }
+    #gameOver {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,255,255,0.9);
+      padding: 20px;
+      border-radius: 10px;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      border-radius: 8px;
+      border: none;
+      background: #ff6f61;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Luksong Baka</h1>
+  <div id="score">Score: 0</div>
+  <div id="gameOver">
+    Game Over!<br>
+    <button onclick="restartGame()">Restart</button>
+  </div>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    // Human jumper (player)
+    const human = {
+      x: 50,
+      y: 300,
+      width: 40,
+      height: 60,
+      color: "#f2a65a",
+      dy: 0,
+      gravity: 0.6,
+      jump: -12,
+      grounded: true
+    };
+
+    // Cow obstacle
+    const cow = {
+      x: 800,
+      y: 330,
+      width: 60,
+      height: 50,
+      color: "#654321",
+      speed: 6
+    };
+
+    let score = 0;
+    let gameOver = false;
+
+    document.addEventListener("keydown", (e) => {
+      if (e.code === "Space" && human.grounded && !gameOver) {
+        human.dy = human.jump;
+        human.grounded = false;
+      }
+    });
+
+    function drawHuman() {
+      ctx.fillStyle = human.color;
+      ctx.fillRect(human.x, human.y, human.width, human.height);
+      // Head
+      ctx.fillStyle = "#ffe0bd";
+      ctx.beginPath();
+      ctx.arc(human.x + 20, human.y - 10, 15, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawCow() {
+      ctx.fillStyle = cow.color;
+      ctx.fillRect(cow.x, cow.y, cow.width, cow.height);
+      // Head
+      ctx.fillStyle = "#8b5a2b";
+      ctx.beginPath();
+      ctx.arc(cow.x + 70, cow.y + 25, 20, 0, Math.PI * 2);
+      ctx.fill();
+      // Legs
+      ctx.fillStyle = cow.color;
+      ctx.fillRect(cow.x + 5, cow.y + 50, 8, 20);
+      ctx.fillRect(cow.x + 20, cow.y + 50, 8, 20);
+      ctx.fillRect(cow.x + 40, cow.y + 50, 8, 20);
+      ctx.fillRect(cow.x + 55, cow.y + 50, 8, 20);
+    }
+
+    function update() {
+      if (gameOver) return;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Human physics
+      human.y += human.dy;
+      human.dy += human.gravity;
+
+      if (human.y >= 300) {
+        human.y = 300;
+        human.dy = 0;
+        human.grounded = true;
+      }
+
+      // Cow movement
+      cow.x -= cow.speed;
+      if (cow.x + cow.width < 0) {
+        cow.x = 800 + Math.random() * 200;
+        score++;
+        document.getElementById("score").innerText = "Score: " + score;
+      }
+
+      // Collision detection
+      if (
+        human.x < cow.x + cow.width &&
+        human.x + human.width > cow.x &&
+        human.y < cow.y + cow.height &&
+        human.y + human.height > cow.y
+      ) {
+        gameOver = true;
+        document.getElementById("gameOver").style.display = "block";
+      }
+
+      // Draw characters
+      drawHuman();
+      drawCow();
+
+      requestAnimationFrame(update);
+    }
+
+    function restartGame() {
+      score = 0;
+      cow.x = 800;
+      gameOver = false;
+      document.getElementById("score").innerText = "Score: 0";
+      document.getElementById("gameOver").style.display = "none";
+      update();
+    }
+
+    update();
+  </script>
+</body>
+</html>
